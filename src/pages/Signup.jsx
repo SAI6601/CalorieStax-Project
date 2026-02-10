@@ -1,96 +1,92 @@
-// src/pages/Signup.jsx
-import { ArrowLeft, Lock, Mail, Ruler, User, Weight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { CheckCircle, Target } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const handleSignup = (e) => { e.preventDefault(); navigate('/'); };
+
+  const float = { animate: { y: [0, -15, 0], transition: { duration: 6, repeat: Infinity, ease: "easeInOut" } } };
+
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-12 relative">
+    <div className="min-h-screen bg-gray-900 flex overflow-hidden">
       
-       {/* Background Decoration */}
-       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 bg-stax-teal rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10"></div>
+      {/* LEFT SIDE: Visuals */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-bl from-gray-800 to-gray-900 relative items-center justify-center overflow-hidden">
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-purple-500/20 via-gray-900 to-gray-900"></div>
+        
+        <div className="relative z-10 w-[120%] h-[120%] flex flex-col items-center justify-center gap-6 rotate-[12deg] -translate-x-10">
+          
+          <motion.div variants={float} animate="animate" className="flex gap-6">
+            <div className="bg-white text-gray-900 p-5 rounded-2xl shadow-2xl w-56">
+               <div className="flex items-center gap-3 mb-2">
+                 <div className="bg-green-100 p-2 rounded-full"><CheckCircle size={20} className="text-green-600"/></div>
+                 <div className="font-bold">Account Active</div>
+               </div>
+               <div className="text-sm text-gray-500">Your journey begins now.</div>
+            </div>
+          </motion.div>
+
+          <motion.div variants={float} animate="animate" transition={{ delay: 0.5 }} className="flex gap-6 translate-x-12">
+            <div className="bg-gray-800/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl w-64">
+              <div className="flex justify-between mb-4"><span className="text-gray-400 text-xs uppercase tracking-wider">Target Goal</span><Target size={18} className="text-stax-teal"/></div>
+              <div className="flex items-end gap-2">
+                <span className="text-3xl font-bold text-white">70 kg</span>
+                <span className="text-stax-teal text-sm mb-1">(-5kg)</span>
+              </div>
+            </div>
+          </motion.div>
+
+        </div>
       </div>
 
-      <div className="max-w-lg w-full bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-xl p-8 shadow-2xl relative z-10">
-        
-        <Link to="/" className="text-gray-400 hover:text-stax-teal transition mb-6 inline-flex items-center gap-2 text-sm">
-          <ArrowLeft size={16} /> Back to Home
-        </Link>
+      {/* RIGHT SIDE: Signup Form */}
+      <div className="w-full lg:w-1/2 bg-gray-900 flex items-center justify-center p-8">
+        <div className="w-full max-w-lg">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Create your account</h1>
+            <p className="text-gray-400">Start tracking your health in seconds.</p>
+          </div>
 
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Create Account</h2>
-          <p className="text-gray-400">Join CalorieStax to start tracking</p>
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div>
+               <label className="block text-sm font-medium text-gray-300 mb-1.5">Full Name</label>
+               <input type="text" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" placeholder="John Doe" />
+            </div>
+
+            <div>
+               <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
+               <input type="email" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" placeholder="john@example.com" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Height (cm)</label>
+                <input type="number" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none" placeholder="175" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1.5">Weight (kg)</label>
+                <input type="number" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none" placeholder="70" />
+              </div>
+            </div>
+
+            <div>
+               <label className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
+               <input type="password" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" placeholder="••••••••" />
+            </div>
+
+            <button type="submit" className="w-full bg-stax-teal text-gray-900 font-bold py-3.5 rounded-xl hover:bg-teal-400 transition-all mt-4 shadow-lg shadow-teal-500/20">
+              Create Account
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-gray-400">
+            Already have an account?{' '}
+            <Link to="/" className="text-stax-teal font-bold hover:underline">
+              Sign In
+            </Link>
+          </p>
         </div>
-
-        <form className="space-y-4">
-          
-          {/* Full Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Full Name</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-gray-500" />
-              </div>
-              <input type="text" className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-2.5" placeholder="John Doe" />
-            </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-500" />
-              </div>
-              <input type="email" className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-2.5" placeholder="you@example.com" />
-            </div>
-          </div>
-
-          {/* Physical Stats Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Height (cm)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Ruler className="h-5 w-5 text-gray-500" />
-                </div>
-                <input type="number" className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-2.5" placeholder="175" />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">Weight (kg)</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Weight className="h-5 w-5 text-gray-500" />
-                </div>
-                <input type="number" className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-2.5" placeholder="70" />
-              </div>
-            </div>
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-500" />
-              </div>
-              <input type="password" className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-2.5" placeholder="••••••••" />
-            </div>
-          </div>
-
-          <button type="submit" className="w-full bg-stax-teal hover:bg-teal-400 text-gray-900 font-bold py-3 px-4 rounded-lg transition duration-300 mt-6">
-            Create Account
-          </button>
-        </form>
-
-        <p className="mt-8 text-center text-sm text-gray-400">
-          Already have an account?{' '}
-          <Link to="/login" className="font-bold text-stax-teal hover:text-teal-400">
-            Sign In
-          </Link>
-        </p>
       </div>
     </div>
   );

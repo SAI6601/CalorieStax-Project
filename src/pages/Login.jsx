@@ -1,71 +1,140 @@
-// src/pages/Login.jsx
-import { ArrowLeft, Lock, Mail } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Apple, Chrome, Droplets, Flame, Footprints, Utensils } from 'lucide-react'; // Added icons for social & fitness
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setTimeout(() => { setIsLoading(false); navigate('/home'); }, 1500);
+  };
+
+  // Floating Animation for cards
+  const float = {
+    animate: {
+      y: [0, -15, 0],
+      transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 relative">
+    <div className="min-h-screen bg-gray-900 flex overflow-hidden">
       
-      {/* Background Decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-stax-teal rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+      {/* LEFT SIDE: Floating 3D Dashboard (The "Salesai" Look adapted for Fitness) */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-gray-800 to-gray-900 relative items-center justify-center overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-stax-teal/20 via-gray-900 to-gray-900"></div>
+        
+        <div className="relative z-10 w-[120%] h-[120%] flex flex-col items-center justify-center gap-6 rotate-[-12deg] translate-x-10">
+          
+          {/* Row 1 of Floating Cards */}
+          <motion.div variants={float} animate="animate" className="flex gap-6">
+            <div className="bg-gray-800/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl w-48">
+              <div className="flex justify-between mb-2"><span className="text-gray-400 text-xs">Calories</span><Flame size={16} className="text-orange-500"/></div>
+              <div className="text-2xl font-bold text-white">1,250</div>
+              <div className="h-1.5 bg-gray-700 rounded-full mt-3 overflow-hidden"><div className="w-[70%] h-full bg-orange-500"></div></div>
+            </div>
+            <div className="bg-stax-teal/90 backdrop-blur-xl p-5 rounded-2xl shadow-2xl w-56 transform translate-y-8">
+              <div className="flex justify-between mb-2"><span className="text-teal-900 text-xs font-bold uppercase">Protein Goal</span><Utensils size={16} className="text-teal-900"/></div>
+              <div className="text-3xl font-black text-gray-900">140g</div>
+              <div className="text-teal-900 text-xs mt-1">Target hit! 🥩</div>
+            </div>
+          </motion.div>
+
+          {/* Row 2 of Floating Cards */}
+          <motion.div variants={float} animate="animate" transition={{ delay: 1 }} className="flex gap-6 translate-x-8">
+             <div className="bg-white/90 backdrop-blur-xl p-5 rounded-2xl shadow-2xl w-52">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="bg-blue-100 p-2 rounded-lg"><Droplets size={20} className="text-blue-500"/></div>
+                 <div><div className="text-gray-900 font-bold">Hydration</div><div className="text-xs text-gray-500">Daily Water</div></div>
+               </div>
+               <div className="text-2xl font-bold text-gray-900">2.5 L</div>
+             </div>
+             <div className="bg-gray-800/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl w-48 transform -translate-y-4">
+              <div className="flex justify-between mb-2"><span className="text-gray-400 text-xs">Steps</span><Footprints size={16} className="text-stax-teal"/></div>
+              <div className="text-2xl font-bold text-white">8,432</div>
+              <div className="h-1.5 bg-gray-700 rounded-full mt-3 overflow-hidden"><div className="w-[85%] h-full bg-stax-teal"></div></div>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      {/* Login Card */}
-      <div className="max-w-md w-full bg-gray-800/50 backdrop-blur-lg border border-gray-700 rounded-xl p-8 shadow-2xl relative z-10">
-        
-        <Link to="/" className="text-gray-400 hover:text-stax-teal transition mb-6 inline-flex items-center gap-2 text-sm">
-          <ArrowLeft size={16} /> Back to Home
-        </Link>
+      {/* RIGHT SIDE: Clean Login Form */}
+      <div className="w-full lg:w-1/2 bg-gray-900 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Sign in to CalorieStax</h1>
+            <p className="text-gray-400">Welcome back! Please enter your details.</p>
+          </div>
 
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-          <p className="text-gray-400">Sign in to continue your fitness journey</p>
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
+              <div className="relative">
+                <input 
+                  type="email" 
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal focus:border-transparent outline-none transition-all placeholder-gray-500" 
+                  placeholder="Enter your email" 
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
+              <div className="relative">
+                <input 
+                  type="password" 
+                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal focus:border-transparent outline-none transition-all placeholder-gray-500" 
+                  placeholder="••••••••" 
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <label className="flex items-center text-gray-400 cursor-pointer">
+                <input type="checkbox" className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-stax-teal focus:ring-stax-teal" />
+                <span className="ml-2">Remember me</span>
+              </label>
+              <a href="#" className="text-stax-teal hover:text-teal-400 font-medium">Forgot Password?</a>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-stax-teal text-gray-900 font-bold py-3.5 rounded-xl hover:bg-teal-400 transition-all transform hover:scale-[1.01] active:scale-95 shadow-lg shadow-teal-500/20"
+            >
+              {isLoading ? 'Signing in...' : 'Sign in'}
+            </button>
+          </form>
+
+          <div className="my-8 flex items-center">
+            <div className="flex-1 border-t border-gray-800"></div>
+            <span className="px-4 text-xs text-gray-500 uppercase font-medium">Or login with</span>
+            <div className="flex-1 border-t border-gray-800"></div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <button className="flex items-center justify-center gap-2 bg-gray-800 border border-gray-700 text-white py-2.5 rounded-xl hover:bg-gray-700 transition">
+              <Chrome size={20} /> Google
+            </button>
+            <button className="flex items-center justify-center gap-2 bg-gray-800 border border-gray-700 text-white py-2.5 rounded-xl hover:bg-gray-700 transition">
+              <Apple size={20} /> Apple
+            </button>
+          </div>
+
+          <p className="mt-8 text-center text-gray-400">
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-stax-teal font-bold hover:underline">
+              Sign Up Now
+            </Link>
+          </p>
         </div>
-
-        <form className="space-y-6">
-          {/* Email */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-500" />
-              </div>
-              <input 
-                type="email" 
-                className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-3 placeholder-gray-500 transition" 
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-500" />
-              </div>
-              <input 
-                type="password" 
-                className="w-full bg-gray-900/50 border border-gray-600 text-white text-sm rounded-lg focus:ring-stax-teal focus:border-stax-teal block pl-10 p-3 placeholder-gray-500 transition" 
-                placeholder="••••••••"
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="w-full bg-stax-teal hover:bg-teal-400 text-gray-900 font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-[1.02]">
-            Sign In
-          </button>
-        </form>
-
-        <p className="mt-8 text-center text-sm text-gray-400">
-          Don't have an account?{' '}
-          <Link to="/signup" className="font-bold text-stax-teal hover:text-teal-400">
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );
