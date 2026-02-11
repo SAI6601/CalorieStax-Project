@@ -1,4 +1,4 @@
-import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 // Import Pages
 import Calculator from './pages/Calculator';
@@ -12,18 +12,20 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* PUBLIC ROUTES */}
-        <Route path="/" element={<Login />} />          {/* Default is now Login */}
+        {/* PUBLIC AUTH ROUTES */}
+        <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         
-        {/* PROTECTED ROUTES (Ideally) */}
-        <Route path="/home" element={<LandingPage />} /> {/* User goes here AFTER login */}
+        {/* PRIVATE HUB ROUTE (User lands here after login) */}
+        <Route path="/home" element={<LandingPage />} />
         
-        {/* APP FEATURES */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* FEATURE ROUTES */}
+        <Route path="/tracker" element={<Dashboard />} />
         <Route path="/calculator" element={<Calculator />} />
         <Route path="/shop" element={<Shop />} />
-        <Route path="/tracker" element={<Dashboard />} /> {/* Alias for tracker link */}
+        
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );

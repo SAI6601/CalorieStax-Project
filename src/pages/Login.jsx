@@ -1,141 +1,286 @@
-import { motion } from 'framer-motion';
-import { Apple, Chrome, Droplets, Flame, Footprints, Utensils } from 'lucide-react'; // Added icons for social & fitness
+import { sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { AnimatePresence, motion } from 'framer-motion';
+import { AlertCircle, Apple, ArrowRight, Chrome, Eye, EyeOff, Lock, Mail, X } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { appleProvider, auth, googleProvider } from '../firebase';
 
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => { setIsLoading(false); navigate('/home'); }, 1500);
+  // --- FORGOT PASSWORD STATE ---
+  const [showResetModal, setShowResetModal] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetMessage, setResetMessage] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
+
+  // --- ANIMATION VARIANTS ---
+  const inputVariants = {
+    rest: { scale: 1, borderColor: "rgba(55, 65, 81, 1)" },
+    focus: { scale: 1.02, borderColor: "#2dd4bf", boxShadow: "0px 0px 8px rgba(45, 212, 191, 0.3)" }
   };
 
-  // Floating Animation for cards
-  const float = {
-    animate: {
-      y: [0, -15, 0],
-      transition: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+  const buttonVariants = {
+    hover: { scale: 1.05, boxShadow: "0px 5px 15px rgba(45, 212, 191, 0.4)" },
+    tap: { scale: 0.95 }
+  };
+
+  // --- LOGIN LOGIC ---
+  const handleEmailLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        setError("Please verify your email first! Check your inbox.");
+        await auth.signOut();
+        setIsLoading(false);
+        return;
+      }
+      navigate('/home');
+    } catch (err) {
+      console.error(err);
+      setError("Invalid email or password.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (providerName) => {
+    setError("");
+    setIsLoading(true);
+    try {
+      const provider = providerName === 'google' ? googleProvider : appleProvider;
+      await signInWithPopup(auth, provider);
+      navigate('/home');
+    } catch (err) {
+      console.error("Login Failed:", err);
+      setError("Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // --- RESET PASSWORD LOGIC ---
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      setResetMessage("Please enter your email.");
+      return;
+    }
+    setIsResetting(true);
+    setResetMessage("");
+    
+    try {
+      await sendPasswordResetEmail(auth, resetEmail);
+      setResetMessage("Success! Check your email for the reset link.");
+      setTimeout(() => {
+        setShowResetModal(false);
+        setResetMessage("");
+      }, 3000);
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'auth/user-not-found') {
+        setResetMessage("No account found with this email.");
+      } else {
+        setResetMessage("Error sending email. Try again.");
+      }
+    } finally {
+      setIsResetting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex overflow-hidden">
+    <div className="min-h-screen bg-gray-900 flex text-white overflow-hidden font-sans relative">
       
-      {/* LEFT SIDE: Floating 3D Dashboard (The "Salesai" Look adapted for Fitness) */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-gray-800 to-gray-900 relative items-center justify-center overflow-hidden">
-        {/* Background Gradients */}
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-stax-teal/20 via-gray-900 to-gray-900"></div>
-        
-        <div className="relative z-10 w-[120%] h-[120%] flex flex-col items-center justify-center gap-6 rotate-[-12deg] translate-x-10">
-          
-          {/* Row 1 of Floating Cards */}
-          <motion.div variants={float} animate="animate" className="flex gap-6">
-            <div className="bg-gray-800/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl w-48">
-              <div className="flex justify-between mb-2"><span className="text-gray-400 text-xs">Calories</span><Flame size={16} className="text-orange-500"/></div>
-              <div className="text-2xl font-bold text-white">1,250</div>
-              <div className="h-1.5 bg-gray-700 rounded-full mt-3 overflow-hidden"><div className="w-[70%] h-full bg-orange-500"></div></div>
-            </div>
-            <div className="bg-stax-teal/90 backdrop-blur-xl p-5 rounded-2xl shadow-2xl w-56 transform translate-y-8">
-              <div className="flex justify-between mb-2"><span className="text-teal-900 text-xs font-bold uppercase">Protein Goal</span><Utensils size={16} className="text-teal-900"/></div>
-              <div className="text-3xl font-black text-gray-900">140g</div>
-              <div className="text-teal-900 text-xs mt-1">Target hit! 🥩</div>
-            </div>
-          </motion.div>
-
-          {/* Row 2 of Floating Cards */}
-          <motion.div variants={float} animate="animate" transition={{ delay: 1 }} className="flex gap-6 translate-x-8">
-             <div className="bg-white/90 backdrop-blur-xl p-5 rounded-2xl shadow-2xl w-52">
-               <div className="flex items-center gap-3 mb-3">
-                 <div className="bg-blue-100 p-2 rounded-lg"><Droplets size={20} className="text-blue-500"/></div>
-                 <div><div className="text-gray-900 font-bold">Hydration</div><div className="text-xs text-gray-500">Daily Water</div></div>
-               </div>
-               <div className="text-2xl font-bold text-gray-900">2.5 L</div>
-             </div>
-             <div className="bg-gray-800/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl w-48 transform -translate-y-4">
-              <div className="flex justify-between mb-2"><span className="text-gray-400 text-xs">Steps</span><Footprints size={16} className="text-stax-teal"/></div>
-              <div className="text-2xl font-bold text-white">8,432</div>
-              <div className="h-1.5 bg-gray-700 rounded-full mt-3 overflow-hidden"><div className="w-[85%] h-full bg-stax-teal"></div></div>
-            </div>
-          </motion.div>
+      {/* LEFT SIDE: Visuals */}
+      <motion.div 
+        initial={{ x: -100, opacity: 0 }} 
+        animate={{ x: 0, opacity: 1 }} 
+        transition={{ duration: 0.8 }}
+        className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 bg-gradient-to-br from-gray-800 to-black"
+      >
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1770&auto=format&fit=crop')] bg-cover bg-center opacity-20 mix-blend-overlay"></div>
+        <div className="relative z-10 text-2xl font-bold tracking-widest uppercase">
+          CALORIE<span className="text-stax-teal">STAX</span>
         </div>
-      </div>
+        <div className="relative z-10 mb-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+            className="text-6xl font-black leading-tight mb-6"
+          >
+            Welcome <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-stax-teal to-teal-400">Back.</span>
+          </motion.h1>
+          <p className="text-gray-400 text-lg max-w-md">
+            Your fitness data is waiting. Sign in to sync your workouts, meals, and progress.
+          </p>
+        </div>
+      </motion.div>
 
-      {/* RIGHT SIDE: Clean Login Form */}
-      <div className="w-full lg:w-1/2 bg-gray-900 flex items-center justify-center p-8">
+      {/* RIGHT SIDE: Interactive Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-900 relative z-0">
         <div className="w-full max-w-md">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Sign in to CalorieStax</h1>
-            <p className="text-gray-400">Welcome back! Please enter your details.</p>
-          </div>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+            <h2 className="text-3xl font-bold mb-2">Sign In</h2>
+            <p className="text-gray-400 mb-8">Enter your credentials to access your account.</p>
+          </motion.div>
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleEmailLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
-              <div className="relative">
-                <input 
-                  type="email" 
-                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal focus:border-transparent outline-none transition-all placeholder-gray-500" 
-                  placeholder="Enter your email" 
-                  required
+              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <motion.div className="relative" initial="rest" whileFocus="focus" whileHover="focus" variants={inputVariants}>
+                <Mail className="absolute left-4 top-3.5 h-5 w-5 text-gray-500" />
+                <motion.input 
+                  type="email" required 
+                  value={email} onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-xl px-12 py-3 outline-none text-white transition-all" 
+                  placeholder="you@example.com" 
                 />
-              </div>
+              </motion.div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
-              <div className="relative">
-                <input 
-                  type="password" 
-                  className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal focus:border-transparent outline-none transition-all placeholder-gray-500" 
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-sm font-medium text-gray-300">Password</label>
+                {/* FORGOT PASSWORD BUTTON */}
+                <button 
+                  type="button"
+                  onClick={() => setShowResetModal(true)}
+                  className="text-sm text-stax-teal hover:text-teal-400 transition-colors"
+                >
+                  Forgot Password?
+                </button>
+              </div>
+
+              <motion.div className="relative" initial="rest" whileFocus="focus" whileHover="focus" variants={inputVariants}>
+                <Lock className="absolute left-4 top-3.5 h-5 w-5 text-gray-500" />
+                <motion.input 
+                  type={showPassword ? "text" : "password"} 
+                  required 
+                  value={password} onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-gray-800/50 border border-gray-700 rounded-xl px-12 py-3 outline-none text-white transition-all pr-12" 
                   placeholder="••••••••" 
-                  required
                 />
-              </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors outline-none"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </motion.div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center text-gray-400 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-stax-teal focus:ring-stax-teal" />
-                <span className="ml-2">Remember me</span>
-              </label>
-              <a href="#" className="text-stax-teal hover:text-teal-400 font-medium">Forgot Password?</a>
-            </div>
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                  className="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg flex items-center gap-2 text-sm"
+                >
+                  <AlertCircle size={16}/> {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <button 
+            <motion.button 
               type="submit" 
-              disabled={isLoading}
-              className="w-full bg-stax-teal text-gray-900 font-bold py-3.5 rounded-xl hover:bg-teal-400 transition-all transform hover:scale-[1.01] active:scale-95 shadow-lg shadow-teal-500/20"
+              variants={buttonVariants} whileHover="hover" whileTap="tap"
+              disabled={isLoading} 
+              className="w-full bg-stax-teal text-gray-900 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 shadow-lg shadow-teal-500/20"
             >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
+              {isLoading ? 'Authenticating...' : <>Sign In <ArrowRight size={20}/></>}
+            </motion.button>
           </form>
 
-          <div className="my-8 flex items-center">
-            <div className="flex-1 border-t border-gray-800"></div>
-            <span className="px-4 text-xs text-gray-500 uppercase font-medium">Or login with</span>
-            <div className="flex-1 border-t border-gray-800"></div>
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-800"></div></div>
+            <div className="relative flex justify-center text-sm"><span className="px-2 bg-gray-900 text-gray-500">Or continue with</span></div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-2 bg-gray-800 border border-gray-700 text-white py-2.5 rounded-xl hover:bg-gray-700 transition">
-              <Chrome size={20} /> Google
-            </button>
-            <button className="flex items-center justify-center gap-2 bg-gray-800 border border-gray-700 text-white py-2.5 rounded-xl hover:bg-gray-700 transition">
-              <Apple size={20} /> Apple
-            </button>
+            <motion.button 
+              onClick={() => handleSocialLogin('google')}
+              className="flex items-center justify-center gap-2 bg-gray-800 border border-gray-700 py-2.5 rounded-xl transition-colors hover:bg-gray-700"
+            >
+              <Chrome size={20}/> Google
+            </motion.button>
+            <motion.button 
+              onClick={() => handleSocialLogin('apple')}
+              className="flex items-center justify-center gap-2 bg-gray-800 border border-gray-700 py-2.5 rounded-xl transition-colors hover:bg-gray-700"
+            >
+              <Apple size={20}/> Apple
+            </motion.button>
           </div>
 
           <p className="mt-8 text-center text-gray-400">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-stax-teal font-bold hover:underline">
-              Sign Up Now
-            </Link>
+            No account? <Link to="/signup" className="text-stax-teal font-bold hover:underline">Sign Up Now</Link>
           </p>
         </div>
       </div>
+
+      {/* --- FORGOT PASSWORD MODAL --- */}
+      <AnimatePresence>
+        {showResetModal && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-gray-800 border border-gray-700 w-full max-w-md p-6 rounded-2xl relative shadow-2xl"
+            >
+              <button 
+                onClick={() => setShowResetModal(false)}
+                className="absolute top-4 right-4 text-gray-400 hover:text-white transition"
+              >
+                <X size={24} />
+              </button>
+
+              <h3 className="text-2xl font-bold mb-2">Reset Password</h3>
+              <p className="text-gray-400 mb-6">Enter your email and we'll send you a link to get back into your account.</p>
+
+              <form onSubmit={handlePasswordReset}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-3.5 h-5 w-5 text-gray-500" />
+                    <input 
+                      type="email" required
+                      value={resetEmail} onChange={(e) => setResetEmail(e.target.value)}
+                      className="w-full bg-gray-900 border border-gray-700 rounded-xl px-12 py-3 outline-none text-white focus:border-stax-teal transition-all"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
+
+                {resetMessage && (
+                   <div className={`p-3 rounded-lg mb-4 text-sm flex items-center gap-2 ${resetMessage.includes("Success") ? "bg-teal-500/10 text-stax-teal" : "bg-red-500/10 text-red-500"}`}>
+                     <AlertCircle size={16}/> {resetMessage}
+                   </div>
+                )}
+
+                <button 
+                  type="submit" 
+                  disabled={isResetting}
+                  className="w-full bg-stax-teal text-gray-900 font-bold py-3 rounded-xl hover:bg-teal-400 transition-all flex justify-center"
+                >
+                  {isResetting ? "Sending..." : "Send Reset Link"}
+                </button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

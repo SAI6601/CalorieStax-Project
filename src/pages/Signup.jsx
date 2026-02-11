@@ -1,92 +1,213 @@
+import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from "firebase/auth";
 import { motion } from 'framer-motion';
-import { CheckCircle, Target } from 'lucide-react';
+import Lottie from "lottie-react";
+import { AlertCircle, ArrowRight, CheckCircle, Eye, EyeOff, Lock, Mail, Ruler, User, Weight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { auth } from "../firebase";
 
 const Signup = () => {
   const navigate = useNavigate();
-  const handleSignup = (e) => { e.preventDefault(); navigate('/'); };
+  const [animationData, setAnimationData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  
+  // NEW: Toggle State
+  const [showPassword, setShowPassword] = useState(false);
 
-  const float = { animate: { y: [0, -15, 0], transition: { duration: 6, repeat: Infinity, ease: "easeInOut" } } };
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    height: "",
+    weight: ""
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  useEffect(() => {
+    fetch("https://lottie.host/58461377-6576-4933-9c03-35df73833308/2Hq4Kq4v9g.json")
+      .then(response => response.json())
+      .then(data => setAnimationData(data));
+  }, []);
+
+  const handleSignup = async (e) => { 
+    e.preventDefault(); 
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      const user = userCredential.user;
+
+      await updateProfile(user, { displayName: formData.fullName });
+      await sendEmailVerification(user);
+
+      alert("Account created! A verification link has been sent to " + formData.email + ". Please check your inbox.");
+      navigate('/'); 
+
+    } catch (err) {
+      console.error(err);
+      if (err.code === 'auth/email-already-in-use') {
+        setError("That email is already taken. Try logging in.");
+      } else if (err.code === 'auth/weak-password') {
+        setError("Password should be at least 6 characters.");
+      } else {
+        setError(err.message.replace("Firebase: ", ""));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+  };
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
+  };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex overflow-hidden">
+    <div className="min-h-screen bg-gray-900 flex text-white overflow-hidden relative">
       
       {/* LEFT SIDE: Visuals */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-bl from-gray-800 to-gray-900 relative items-center justify-center overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-purple-500/20 via-gray-900 to-gray-900"></div>
-        
-        <div className="relative z-10 w-[120%] h-[120%] flex flex-col items-center justify-center gap-6 rotate-[12deg] -translate-x-10">
-          
-          <motion.div variants={float} animate="animate" className="flex gap-6">
-            <div className="bg-white text-gray-900 p-5 rounded-2xl shadow-2xl w-56">
-               <div className="flex items-center gap-3 mb-2">
-                 <div className="bg-green-100 p-2 rounded-full"><CheckCircle size={20} className="text-green-600"/></div>
-                 <div className="font-bold">Account Active</div>
-               </div>
-               <div className="text-sm text-gray-500">Your journey begins now.</div>
-            </div>
-          </motion.div>
-
-          <motion.div variants={float} animate="animate" transition={{ delay: 0.5 }} className="flex gap-6 translate-x-12">
-            <div className="bg-gray-800/80 backdrop-blur-xl p-5 rounded-2xl border border-white/10 shadow-2xl w-64">
-              <div className="flex justify-between mb-4"><span className="text-gray-400 text-xs uppercase tracking-wider">Target Goal</span><Target size={18} className="text-stax-teal"/></div>
-              <div className="flex items-end gap-2">
-                <span className="text-3xl font-bold text-white">70 kg</span>
-                <span className="text-stax-teal text-sm mb-1">(-5kg)</span>
-              </div>
-            </div>
-          </motion.div>
-
-        </div>
-      </div>
-
-      {/* RIGHT SIDE: Signup Form */}
-      <div className="w-full lg:w-1/2 bg-gray-900 flex items-center justify-center p-8">
-        <div className="w-full max-w-lg">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Create your account</h1>
-            <p className="text-gray-400">Start tracking your health in seconds.</p>
+      <motion.div 
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ duration: 0.8 }}
+        className="hidden lg:flex w-1/2 bg-gradient-to-br from-gray-800 via-gray-900 to-black relative items-center justify-center p-12"
+      >
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="text-2xl font-bold tracking-widest uppercase mb-8">
+            CALORIE<span className="text-stax-teal">STAX</span>
           </div>
+          <div className="w-full max-w-lg drop-shadow-2xl">
+            {animationData && <Lottie animationData={animationData} loop={true} className="w-full h-auto" />}
+          </div>
+          <div className="mt-8">
+            <h1 className="text-4xl font-black leading-tight">
+              Join the <span className="text-transparent bg-clip-text bg-gradient-to-r from-stax-teal to-teal-200">Movement.</span>
+            </h1>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* RIGHT SIDE: Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-900">
+        <motion.div variants={containerVariants} initial="hidden" animate="visible" className="w-full max-w-lg">
+          
+          <motion.div variants={itemVariants} className="mb-8">
+            <h2 className="text-3xl font-bold mb-2 flex items-center gap-2">
+              Create Account <CheckCircle className="text-stax-teal h-6 w-6" />
+            </h2>
+            <p className="text-gray-400">Start tracking your health in seconds.</p>
+          </motion.div>
 
           <form onSubmit={handleSignup} className="space-y-4">
-            <div>
+            
+            <motion.div variants={itemVariants}>
                <label className="block text-sm font-medium text-gray-300 mb-1.5">Full Name</label>
-               <input type="text" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" placeholder="John Doe" />
-            </div>
+               <div className="relative group">
+                 <User className="absolute left-4 top-3.5 h-5 w-5 text-gray-500 group-focus-within:text-stax-teal transition-colors"/>
+                 <input 
+                   type="text" name="fullName" required
+                   value={formData.fullName} onChange={handleChange}
+                   className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" 
+                   placeholder="John Doe" 
+                 />
+               </div>
+            </motion.div>
 
-            <div>
+            <motion.div variants={itemVariants}>
                <label className="block text-sm font-medium text-gray-300 mb-1.5">Email</label>
-               <input type="email" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" placeholder="john@example.com" />
-            </div>
+               <div className="relative group">
+                 <Mail className="absolute left-4 top-3.5 h-5 w-5 text-gray-500 group-focus-within:text-stax-teal transition-colors"/>
+                 <input 
+                   type="email" name="email" required
+                   value={formData.email} onChange={handleChange}
+                   className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" 
+                   placeholder="john@example.com" 
+                 />
+               </div>
+            </motion.div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Height (cm)</label>
-                <input type="number" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none" placeholder="175" />
+                <div className="relative group">
+                  <Ruler className="absolute left-4 top-3.5 h-5 w-5 text-gray-500 group-focus-within:text-stax-teal transition-colors"/>
+                  <input 
+                    type="number" name="height"
+                    value={formData.height} onChange={handleChange}
+                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" 
+                    placeholder="175" 
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1.5">Weight (kg)</label>
-                <input type="number" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none" placeholder="70" />
+                <div className="relative group">
+                  <Weight className="absolute left-4 top-3.5 h-5 w-5 text-gray-500 group-focus-within:text-stax-teal transition-colors"/>
+                  <input 
+                    type="number" name="weight"
+                    value={formData.weight} onChange={handleChange}
+                    className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl pl-12 pr-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" 
+                    placeholder="70" 
+                  />
+                </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div>
+            <motion.div variants={itemVariants}>
                <label className="block text-sm font-medium text-gray-300 mb-1.5">Password</label>
-               <input type="password" className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl px-4 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" placeholder="••••••••" />
-            </div>
+               <div className="relative group">
+                 <Lock className="absolute left-4 top-3.5 h-5 w-5 text-gray-500 group-focus-within:text-stax-teal transition-colors"/>
+                 
+                 {/* NEW: Dynamic Type & Toggle Button */}
+                 <input 
+                   type={showPassword ? "text" : "password"} 
+                   name="password" required
+                   value={formData.password} onChange={handleChange}
+                   className="w-full bg-gray-800 border border-gray-700 text-white rounded-xl pl-12 pr-12 py-3.5 focus:ring-2 focus:ring-stax-teal outline-none transition-all" 
+                   placeholder="••••••••" 
+                 />
 
-            <button type="submit" className="w-full bg-stax-teal text-gray-900 font-bold py-3.5 rounded-xl hover:bg-teal-400 transition-all mt-4 shadow-lg shadow-teal-500/20">
-              Create Account
-            </button>
+                 <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors outline-none"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+               </div>
+            </motion.div>
+
+            {error && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-sm flex items-center gap-2 bg-red-400/10 p-3 rounded-lg">
+                <AlertCircle size={16}/> {error}
+              </motion.div>
+            )}
+
+            <motion.button 
+              variants={itemVariants}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-stax-teal text-gray-900 font-bold py-4 rounded-xl hover:bg-teal-400 transition-all mt-6 flex justify-center items-center gap-2"
+            >
+              {isLoading ? 'Creating Account...' : <>Create Account <ArrowRight size={20}/></>}
+            </motion.button>
           </form>
 
-          <p className="mt-8 text-center text-gray-400">
-            Already have an account?{' '}
-            <Link to="/" className="text-stax-teal font-bold hover:underline">
-              Sign In
-            </Link>
-          </p>
-        </div>
+          <motion.p variants={itemVariants} className="mt-8 text-center text-gray-400">
+            Already a member? <Link to="/" className="text-stax-teal font-bold hover:underline transition-all">Sign In</Link>
+          </motion.p>
+        </motion.div>
       </div>
     </div>
   );
